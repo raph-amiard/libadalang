@@ -5337,6 +5337,9 @@ class BaseSubpSpec(BaseFormalParamHolder):
 
     return_type = Property(Entity.returns._.designated_type)
 
+    xref_entry_point = Property(True)
+    xref_equation = Property(Entity.returns._.sub_equation._or(LogicTrue()))
+
 
 class SubpSpec(BaseSubpSpec):
     subp_kind = Field(type=T.SubpKind)
