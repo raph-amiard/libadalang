@@ -24,10 +24,14 @@ package body Libadalang.Expr_Eval is
             when LAL.Ada_Enum_Literal_Decl =>
 
                --  An enum literal declaration evaluates to itself
-               return (Enum_Lit,
-                       As_Base_Type_Decl
-                         (P_Enum_Type (As_Enum_Literal_Decl (D))),
-                       As_Enum_Literal_Decl (D));
+               declare
+                  Lit  : constant Enum_Literal_Decl :=
+                     Enum_Literal_Decl (As_Enum_Literal_Decl (D));
+                  Decl : constant Base_Type_Decl :=
+                     Base_Type_Decl (As_Base_Type_Decl (P_Enum_Type (Lit)));
+               begin
+                  return (Enum_Lit, Decl, Lit);
+               end;
 
             when LAL.Ada_Number_Decl =>
 
@@ -44,19 +48,26 @@ package body Libadalang.Expr_Eval is
       case Kind (E) is
          when LAL.Ada_Base_Id =>
 
-            return Eval_Decl
-              (P_Referenced_Decl_Internal
-                 (As_Base_Id (E), Try_Immediate => True));
+            declare
+               Id : constant Base_Id := Base_Id (As_Base_Id (E));
+               Decl : constant Basic_Decl := Basic_Decl
+                 (P_Referenced_Decl_Internal
+                    (Id, Try_Immediate => True).As_Basic_Decl);
+            begin
+               return Eval_Decl (Decl);
+            end;
 
          when LAL.Ada_Int_Literal =>
             return (Int,
-                    As_Base_Type_Decl (P_Universal_Int_Type (E)),
+                    Base_Type_Decl
+                      (As_Base_Type_Decl (P_Universal_Int_Type (E))),
                     Long_Integer'Value
                       (LAL.Text (F_Tok (As_Int_Literal (E)))));
 
          when LAL.Ada_Real_Literal =>
             return (Real,
-                    As_Base_Type_Decl (P_Universal_Real_Type (E)),
+                    Base_Type_Decl
+                      (As_Base_Type_Decl (P_Universal_Real_Type (E))),
                     Long_Float'Value
                       (LAL.Text (F_Tok (As_Real_Literal (E)))));
 
@@ -64,7 +75,7 @@ package body Libadalang.Expr_Eval is
             raise LAL.Property_Error;
          when LAL.Ada_Un_Op =>
             declare
-               UO : LAL.Un_Op := As_Un_Op (E);
+               UO : LAL.Un_Op := LAL.Un_Op (As_Un_Op (E));
                Op : LAL.Op := F_Op (UO);
                Operand_Val : Eval_Result := Expr_Eval (F_Expr (UO));
             begin

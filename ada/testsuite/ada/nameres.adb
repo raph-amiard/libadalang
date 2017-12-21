@@ -390,13 +390,13 @@ procedure Nameres is
             elsif Pragma_Name = "Test_Block" then
                pragma Assert (Child_Count (F_Args (P_Node)) = 0);
                declare
-                  Parent_1 : constant Ada_Node := Parent (P_Node);
-                  Parent_2 : constant Ada_Node := Parent (Parent_1);
+                  Parent_1 : constant Ada_Node'Class := Parent (P_Node);
+                  Parent_2 : constant Ada_Node'Class := Parent (Parent_1);
                begin
                   Resolve_Block
                     (if Kind (Parent_2) = Ada_Compilation_Unit
                      then F_Body (As_Compilation_Unit (Parent_2))
-                     else Previous_Sibling (P_Node));
+                     else Ada_Node (Previous_Sibling (P_Node)));
                end;
                Empty := False;
             end if;

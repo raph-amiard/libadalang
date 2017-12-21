@@ -299,7 +299,7 @@ procedure GNAT_Compare is
             end;
          end loop;
 
-         Ref := Node.P_Referenced_Decl;
+         Ref := Basic_Decl (Node.P_Referenced_Decl);
 
          if not Ref.Is_Null then
             for Wrapper of Xrefs_Wrapper.Post_Wrappers loop

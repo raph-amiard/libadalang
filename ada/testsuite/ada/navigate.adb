@@ -234,11 +234,13 @@ procedure Navigate is
          for Child of LAL.Ada_Node_Array'(Aspects.F_Aspect_Assocs.Children)
          loop
             declare
-               Assoc : constant LAL.Aspect_Assoc := Child.As_Aspect_Assoc;
+               Assoc : constant LAL.Aspect_Assoc :=
+                  LAL.Aspect_Assoc (Child.As_Aspect_Assoc);
             begin
                if Assoc.F_Id.Kind = LAL.Ada_Identifier then
                   declare
-                     Id : constant LAL.Identifier := Assoc.F_Id.As_Identifier;
+                     Id : constant LAL.Identifier :=
+                        LAL.Identifier (Assoc.F_Id.As_Identifier);
                   begin
                      return Lowercase_Name (Id) = "disable_navigation";
                   end;
