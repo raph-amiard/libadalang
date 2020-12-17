@@ -6,7 +6,7 @@ from langkit.dsl import (
 )
 from langkit.envs import (
     EnvSpec, RefKind, add_env, add_to_env, add_to_env_kv, do,
-    handle_children, reference, set_initial_env
+    handle_children, reference, set_initial_env, set_initial_env_by_name
 )
 from langkit.expressions import (
     AbstractKind, AbstractProperty, And, ArrayLiteral as Array, BigIntLiteral,
@@ -179,7 +179,7 @@ class AdaNode(ASTNode):
         """
         Static method. Return the array of symbols joined by separator ``sep``.
         """
-        return Entity.string_join(syms.map(lambda s: s.image), sep)
+        return Self.string_join(syms.map(lambda s: s.image), sep)
 
     @langkit_property(return_type=T.CompilationUnit,
                       ignore_warn_on_node=True)
@@ -1270,6 +1270,13 @@ class BasicDecl(AdaNode):
             False
         )
 
+    @langkit_property(return_type=T.String)
+    def top_level_env_name():
+        return Self.sym_join(
+            Self.enclosing_compilation_unit.syntactic_fully_qualified_name,
+            String(".")
+        )
+
     is_formal = Property(
         Self.parent.is_a(T.GenericFormal),
         public=True,
@@ -1388,6 +1395,13 @@ class BasicDecl(AdaNode):
             Not(Entity.get_pragma('Import').is_null),
             Not(Entity.get_pragma('Interface').is_null),
         )
+
+    @langkit_property(return_type=T.Bool)
+    def is_library_item():
+        """
+        Return whether this is a top-level element.
+        """
+        return Self.parent.is_a(LibraryItem)
 
     decl_private_part = Property(Entity.match(
         lambda bpd=T.BasePackageDecl: bpd.private_part,
@@ -7172,9 +7186,23 @@ class PrivatePart(DeclarativePart):
     """
     List of declarations in a private part.
     """
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.parent.cast(BasePackageDecl).then(
+            lambda pkg: If(
+                pkg.is_library_item,
+                Array([
+                    pkg.top_level_env_name.concat(
+                        String(".__privatepart")
+                    ).to_symbol
+                ]),
+                No(T.Symbol.array)
+            )
+        )
+
     env_spec = EnvSpec(
         add_to_env_kv('__privatepart', Self),
-        add_env(transitive_parent=True)
+        add_env(transitive_parent=True, names=Self.env_names)
     )
 
 
@@ -7218,6 +7246,24 @@ class BasePackageDecl(BasicDecl):
 
     declarative_region = Property(Entity.public_part)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        fqn = Var(Self.top_level_env_name)
+        return If(
+            Self.is_library_item,
+            If(
+                Not(Self.private_part.is_null),
+                Array([
+                    fqn.to_symbol
+                ]),
+                Array([
+                    fqn.to_symbol,
+                    fqn.concat(String(".__privatepart")).to_symbol
+                ])
+            ),
+            No(T.Symbol.array)
+        )
+
 
 class PackageDecl(BasePackageDecl):
     """
@@ -7232,7 +7278,9 @@ class PackageDecl(BasePackageDecl):
             Entity.name_symbol,
             env.bind(Self.parent.node_env, Entity.decl_scope(False))
         ), unsound=True),
-        add_env(),
+
+        add_env(names=Self.env_names),
+
         do(Self.populate_dependent_units),
         reference(
             Self.top_level_use_package_clauses,
@@ -8049,7 +8097,14 @@ class GenericPackageInternal(BasePackageDecl):
     # Implementation note: This exists so that we can insert an environment to
     # distinguish between formal parameters and the package's contents.
 
-    env_spec = EnvSpec(add_env())
+    @langkit_property(return_type=T.Bool)
+    def is_library_item():
+        """
+        Return whether this is a top-level element.
+        """
+        return Self.parent.parent.is_a(LibraryItem)
+
+    env_spec = EnvSpec(add_env(names=Self.env_names))
 
 
 class GenericPackageDecl(GenericDecl):
@@ -14570,15 +14625,25 @@ class PackageBody(Body):
     """
     Package body.
     """
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        return If(
+            Self.is_library_item,
+            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+            No(T.Symbol)
+        )
 
     env_spec = EnvSpec(
         do(Self.env_hook),
 
         # Parent link is the package's decl, or private part if there is one
-        set_initial_env(env.bind(
-            Self.default_initial_env,
-            Self.initial_env(Entity.body_scope(follow_private=True))
-        ), unsound=True),
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            env.bind(
+                Self.default_initial_env,
+                Self.initial_env(Entity.body_scope(follow_private=True))
+            )
+        ),
 
         add_to_env(Self.env_assoc(
             '__nextpart',
