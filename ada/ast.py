@@ -2573,7 +2573,7 @@ class Body(BasicDecl):
 
     @langkit_property()
     def is_subunit():
-        return Not(Self.parent.cast(T.Subunit).is_null)
+        return Self.parent.is_a(T.Subunit)
 
     @langkit_property(ignore_warn_on_node=True, public=True)
     def subunit_root():
@@ -2694,6 +2694,15 @@ class BodyStub(Body):
 
         return cu.syntactic_fully_qualified_name.concat(rel_name)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Array([
+            Self.sym_join(
+                Self.syntactic_fully_qualified_name, String(".")
+            ).concat(
+                String("__stub")
+            ).to_symbol
+        ])
 
 @abstract
 class BaseFormalParamDecl(BasicDecl):
@@ -14627,9 +14636,13 @@ class PackageBody(Body):
     """
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
-        return If(
+        return Cond(
             Self.is_library_item,
             Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+
+            Self.is_subunit,
+            Self.top_level_env_name.concat(String("__stub")).to_symbol,
+
             No(T.Symbol)
         )
 
@@ -15014,7 +15027,7 @@ class ProtectedBodyStub(BodyStub):
     env_spec = EnvSpec(
         add_to_env_kv('__nextpart', Self, dest_env=Entity.stub_decl_env,
                       unsound=True),
-        add_env(),
+        add_env(names=Self.env_names),
     )
 
 
@@ -15052,7 +15065,7 @@ class PackageBodyStub(BodyStub):
     env_spec = EnvSpec(
         add_to_env_kv('__nextpart', Self, dest_env=Entity.stub_decl_env,
                       unsound=True),
-        add_env(),
+        add_env(names=Self.env_names),
     )
 
 
