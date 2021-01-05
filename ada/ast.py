@@ -14652,26 +14652,25 @@ class PackageBody(Body):
         # Parent link is the package's decl, or private part if there is one
         set_initial_env_by_name(
             Self.initial_env_name,
-            env.bind(
-                Self.default_initial_env,
-                Self.initial_env(Entity.body_scope(follow_private=True))
-            )
+            Self.default_initial_env
         ),
 
-        add_to_env(Self.env_assoc(
-            '__nextpart',
-            env.bind(
-                Self.default_initial_env,
-                If(
-                    Self.is_subunit,
-                    Entity.subunit_stub_env,
-
-                    # __nextpart never goes into the private part, and is
-                    # always in the decl for nested sub packages.
-                    Entity.body_scope(follow_private=False, force_decl=True)
+        add_to_env_kv(
+            key='__nextpart',
+            val=Self,
+            dest_env=If(
+                Self.has_top_level_env_name,
+                # todo: use the name env of the public part of the package decl
+                No(T.LexicalEnv),
+                env.bind(
+                    Self.default_initial_env,
+                    Self.initial_env(
+                        Entity.body_scope(follow_private=False,
+                                          force_decl=True)
+                    )
                 )
             )
-        ), unsound=True),
+        ),
 
         # We make a transitive parent link only when the package is a library
         # level package.
