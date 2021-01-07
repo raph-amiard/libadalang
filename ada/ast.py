@@ -2377,7 +2377,6 @@ class Body(BasicDecl):
             No(T.Symbol)
         )
 
-
     @langkit_property(dynamic_vars=[default_imprecise_fallback()])
     def subp_previous_part():
         """
@@ -2738,6 +2737,12 @@ class BodyStub(Body):
         ))
 
         return cu.syntactic_fully_qualified_name.concat(rel_name)
+
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        return Self.sym_join(
+            Self.syntactic_fully_qualified_name, String(".")
+        ).to_symbol
 
     @langkit_property(return_type=T.Symbol.array)
     def env_names():
@@ -15051,8 +15056,11 @@ class ProtectedBodyStub(BodyStub):
     defining_names = Property(Entity.name.singleton)
 
     env_spec = EnvSpec(
-        add_to_env_kv('__nextpart', Self, dest_env=Entity.stub_decl_env,
-                      unsound=True),
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            No(T.LexicalEnv)  # fallback should never be reached
+        ),
+        add_to_env_kv('__nextpart', Self),
         add_env(names=Self.env_names),
     )
 
@@ -15071,7 +15079,11 @@ class SubpBodyStub(BodyStub):
     # what we put in lexical environment is their SubpSpec child.
 
     env_spec = EnvSpec(
-        add_to_env_kv(Entity.name_symbol, Self),
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            No(T.LexicalEnv)  # fallback should never be reached
+        ),
+        add_to_env_kv('__nextpart', Self),
         add_env(names=Self.env_names)
     )
 
