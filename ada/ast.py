@@ -7286,15 +7286,32 @@ class PackageDecl(BasePackageDecl):
     """
     Non-generic package declarations.
     """
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        """
+        A package decl has a named parent env only if it is a child package
+        declaration, in which case we use the name of its parent.
+        """
+        return If(
+            Self.is_library_item,
+            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+
+            No(T.Symbol)
+        )
+
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Entity.decl_scope)),
-                        unsound=True),
-        add_to_env(Self.env_assoc(
-            Entity.name_symbol,
-            env.bind(Self.parent.node_env, Entity.decl_scope(False))
-        ), unsound=True),
+
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            Self.default_initial_env
+        ),
+
+        # todo: Self should be added in the public part
+        add_to_env_kv(
+            key=Entity.name_symbol,
+            val=Self
+        ),
 
         add_env(names=Self.env_names),
 
