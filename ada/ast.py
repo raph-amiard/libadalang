@@ -2360,6 +2360,24 @@ class Body(BasicDecl):
             Entity.body_scope(True, True)
         )
 
+    @langkit_property(return_type=T.Symbol)
+    def body_initial_env_name():
+        """
+        A package or subprogram body has a named parent env only if it is a
+        compilation unit root, in which case it will be the name of its
+        corresponding declaration.
+        """
+        return Cond(
+            Self.is_library_item,
+            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+
+            Self.is_subunit,
+            Self.top_level_env_name.concat(String("__stub")).to_symbol,
+
+            No(T.Symbol)
+        )
+
+
     @langkit_property(dynamic_vars=[default_imprecise_fallback()])
     def subp_previous_part():
         """
@@ -13879,35 +13897,26 @@ class BaseSubpBody(Body):
     env_spec = EnvSpec(
         do(Self.env_hook),
 
-        set_initial_env(
-            env.bind(Self.default_initial_env, Entity.body_scope(
-                # If this is a library-level subprogram declaration, we have
-                # visibility on the private part of our parent package, if any.
-                follow_private=Self.is_compilation_unit_root
-            )),
-            unsound=True,
+        set_initial_env_by_name(
+            Self.body_initial_env_name,
+            Self.default_initial_env
         ),
 
-        # Add the body to its own parent env, if it's not the body of a stub
-        # (in which case the stub will act as the body).
-        add_to_env(
-            Not(Self.is_subunit)
-            .then(lambda _: new_env_assoc(
-                Entity.name_symbol,
-                Self,
-                dest_env=env.bind(Self.default_initial_env,
-                                  Entity.body_scope(False))
-            ).singleton),
-            unsound=True,
+        add_to_env_kv(
+            key=Entity.name_symbol,
+            val=Self
         ),
 
         add_env(transitive_parent=True),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
             cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
         ),
+
         reference(
             Self.top_level_use_type_clauses,
             through=T.Name.name_designated_type_env,
@@ -14664,28 +14673,12 @@ class PackageBody(Body):
     """
     Package body.
     """
-    @langkit_property(return_type=T.Symbol)
-    def initial_env_name():
-        """
-        A package body has a named parent env only if it is a compilation unit
-        root, which will be the name of its corresponding declaration.
-        """
-        return Cond(
-            Self.is_library_item,
-            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
-
-            Self.is_subunit,
-            Self.top_level_env_name.concat(String("__stub")).to_symbol,
-
-            No(T.Symbol)
-        )
-
     env_spec = EnvSpec(
         do(Self.env_hook),
 
         # Parent link is the package's decl, or private part if there is one
         set_initial_env_by_name(
-            Self.initial_env_name,
+            Self.body_initial_env_name,
             Self.default_initial_env
         ),
 
@@ -15079,7 +15072,7 @@ class SubpBodyStub(BodyStub):
 
     env_spec = EnvSpec(
         add_to_env_kv(Entity.name_symbol, Self),
-        add_env(),
+        add_env(names=Self.env_names)
     )
 
     type_expression = Property(Entity.subp_spec.returns)
