@@ -1287,6 +1287,23 @@ class BasicDecl(AdaNode):
             No(T.String)
         )
 
+    @langkit_property(return_type=T.Symbol)
+    def child_decl_initial_env_name():
+        """
+        A top level decl (package, subprogram) has a named parent env only if
+        it is a child package declaration, in which case we use the name of
+        its parent.
+        """
+        return If(
+            # todo: check if it is a child package declaration
+            Self.is_library_item,
+
+            # todo: get the fqn  of the parent package
+            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+
+            No(T.Symbol)
+        )
+
     is_formal = Property(
         Self.parent.is_a(T.GenericFormal),
         public=True,
@@ -6552,26 +6569,27 @@ class BasicSubpDecl(BasicDecl):
         # Call the env hook to parse eventual parent unit
         do(Self.env_hook),
 
-        set_initial_env(
-            env.bind(Self.default_initial_env, Entity.decl_scope),
-            unsound=True,
+        set_initial_env_by_name(
+            Self.child_decl_initial_env_name,
+            Self.default_initial_env
         ),
 
+        # todo: add to the public part
         add_to_env_kv(
-            Entity.name_symbol, Self,
-            dest_env=env.bind(
-                Self.default_initial_env,
-                Self.as_bare_entity.subp_decl_spec.name.parent_scope
-            ),
-            unsound=True,
+            key=Entity.name_symbol,
+            val=Self
         ),
+
         add_env(),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
             cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
         ),
+
         reference(
             Self.top_level_use_type_clauses,
             through=T.Name.name_designated_type_env,
@@ -7286,24 +7304,11 @@ class PackageDecl(BasePackageDecl):
     """
     Non-generic package declarations.
     """
-    @langkit_property(return_type=T.Symbol)
-    def initial_env_name():
-        """
-        A package decl has a named parent env only if it is a child package
-        declaration, in which case we use the name of its parent.
-        """
-        return If(
-            Self.is_library_item,
-            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
-
-            No(T.Symbol)
-        )
-
     env_spec = EnvSpec(
         do(Self.env_hook),
 
         set_initial_env_by_name(
-            Self.initial_env_name,
+            Self.child_decl_initial_env_name,
             Self.default_initial_env
         ),
 
