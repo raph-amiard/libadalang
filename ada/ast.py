@@ -1270,11 +1270,21 @@ class BasicDecl(AdaNode):
             False
         )
 
+    @langkit_property(return_type=T.Bool)
+    def has_top_level_env_name():
+        return Self.is_a(
+            BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
+        ) & Self.as_bare_entity.parent_basic_decl.then(
+            lambda p: p.has_top_level_env_name,
+            default_val=True
+        )
+
     @langkit_property(return_type=T.String)
     def top_level_env_name():
-        return Self.sym_join(
-            Self.enclosing_compilation_unit.syntactic_fully_qualified_name,
-            String(".")
+        return If(
+            Self.has_top_level_env_name,
+            Self.as_bare_entity.canonical_fully_qualified_name,
+            No(T.String)
         )
 
     is_formal = Property(
@@ -7258,9 +7268,8 @@ class BasePackageDecl(BasicDecl):
     @langkit_property(return_type=T.Symbol.array)
     def env_names():
         fqn = Var(Self.top_level_env_name)
-        return If(
-            Self.is_library_item,
-            If(
+        return fqn.then(
+            lambda fqn: If(
                 Not(Self.private_part.is_null),
                 Array([
                     fqn.to_symbol
@@ -7269,8 +7278,7 @@ class BasePackageDecl(BasicDecl):
                     fqn.to_symbol,
                     fqn.concat(String(".__privatepart")).to_symbol
                 ])
-            ),
-            No(T.Symbol.array)
+            )
         )
 
 
@@ -14636,6 +14644,10 @@ class PackageBody(Body):
     """
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
+        """
+        A package body has a named parent env only if it is a compilation unit
+        root, which will be the name of its corresponding declaration.
+        """
         return Cond(
             Self.is_library_item,
             Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
