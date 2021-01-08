@@ -1272,14 +1272,68 @@ class BasicDecl(AdaNode):
         )
 
     @langkit_property(return_type=T.Bool)
+    def has_top_level_env_name_impl(allow_bodies=Bool):
+        is_decl = Var(Self.is_a(BasePackageDecl, BasicSubpDecl))
+        is_body = Var(Self.is_a(Body))
+        return And(
+            is_decl | (allow_bodies & is_body),
+            Self.node_env.env_node.then(
+                lambda node: node.cast(BasicDecl).then(
+                    lambda p: If(
+                        Self == p,
+                        True,
+                        p.has_top_level_env_name_impl(
+                            allow_bodies=And(
+                                allow_bodies,
+                                Not(Self.is_a(BaseSubpBody))
+                            )
+                        )
+                    )
+                ),
+                default_val=True
+            )
+        )
+
+    @langkit_property(return_type=T.Bool)
     def has_top_level_env_name():
-        return Self.is_a(
-            BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
-        ) & Self.as_bare_entity.parent_basic_decl.then(
-            lambda p: If(
-                Self == p.node,
-                True,
-                p.has_top_level_env_name
+        """
+        package A is                     -- True
+            package B is                 -- True
+                procedure Foo;           -- True
+            end B;
+        end A;
+
+        package body A is                -- True
+            package body B is            -- True
+                procedure Foo;           -- False
+            end B;
+        end A;
+
+        package body A is                -- True
+            package body B is            -- True
+                procedure Foo is null;   -- True
+            end B;
+        end A;
+
+        procedure A is                   -- True
+            procedure Foo;               -- True
+        begin
+            ...
+        end A;
+
+        package body A is                -- True
+            procedure B is               -- True
+                procedure Foo is null;   -- False
+            begin
+                ...
+            end B;
+        end A;
+        """
+        return Self.children_env.env_node.then(
+            lambda node: node.cast(BasicDecl).then(
+                lambda bd: bd.has_top_level_env_name_impl(
+                    allow_bodies=Self.is_a(Body)
+                )
             ),
             default_val=True
         )
