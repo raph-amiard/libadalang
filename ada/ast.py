@@ -1276,15 +1276,41 @@ class BasicDecl(AdaNode):
         return Self.is_a(
             BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
         ) & Self.as_bare_entity.parent_basic_decl.then(
-            lambda p: p.has_top_level_env_name,
+            lambda p: If(
+                Self == p.node,
+                True,
+                p.has_top_level_env_name
+            ),
             default_val=True
+        )
+
+    @langkit_property(return_type=T.String)
+    def syntactic_fqn():
+        return Cond(
+            Self.is_compilation_unit_root,
+            Self.sym_join(
+                Self.enclosing_compilation_unit.syntactic_fully_qualified_name,
+                String(".")
+            ),
+
+            Self.is_a(
+                BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
+            ),
+            Self.children_env.env_node.cast(BasicDecl).then(
+                lambda bd:
+                bd.syntactic_fqn
+                    .concat(String("."))
+                    .concat(Self.name_symbol.image),
+            ),
+
+            No(T.String)
         )
 
     @langkit_property(return_type=T.String)
     def top_level_env_name():
         return If(
             Self.has_top_level_env_name,
-            Self.as_bare_entity.canonical_fully_qualified_name,
+            Self.syntactic_fqn,
             No(T.String)
         )
 
