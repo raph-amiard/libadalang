@@ -6615,6 +6615,12 @@ class BasicSubpDecl(BasicDecl):
     def expr_type():
         return Entity.subp_spec_or_null._.return_type
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.top_level_env_name.then(
+            lambda fqn: fqn.to_symbol.singleton
+        )
+
     subp_decl_spec = AbstractProperty(
         type=T.BaseSubpSpec.entity, public=True,
         doc='Return the specification for this subprogram'
@@ -6635,7 +6641,7 @@ class BasicSubpDecl(BasicDecl):
             val=Self
         ),
 
-        add_env(),
+        add_env(names=Self.env_names),
 
         do(Self.populate_dependent_units),
 
@@ -13931,11 +13937,19 @@ class BaseSubpBody(Body):
     def expr_type():
         return Entity.subp_spec_or_null._.return_type
 
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        return If(
+            Self.is_library_item,
+            Self.child_decl_initial_env_name,
+            Self.body_initial_env_name
+        )
+
     env_spec = EnvSpec(
         do(Self.env_hook),
 
         set_initial_env_by_name(
-            Self.body_initial_env_name,
+            Self.initial_env_name,
             Self.default_initial_env
         ),
 
