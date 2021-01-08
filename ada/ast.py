@@ -1284,7 +1284,8 @@ class BasicDecl(AdaNode):
                         p.has_top_level_env_name_impl(
                             allow_bodies=And(
                                 allow_bodies,
-                                Not(Self.is_a(BaseSubpBody))
+                                Not(Self.is_a(BaseSubpBody)),
+                                Not(p.is_a(BaseSubpBody))
                             )
                         )
                     )
@@ -1303,6 +1304,12 @@ class BasicDecl(AdaNode):
         end A;
 
         package body A is                -- True
+            package B is                 -- True
+                procedure Foo;           -- True
+            end B;
+        end A;
+
+        package body A is                -- True
             package body B is            -- True
                 procedure Foo;           -- False
             end B;
@@ -1314,12 +1321,6 @@ class BasicDecl(AdaNode):
             end B;
         end A;
 
-        procedure A is                   -- True
-            procedure Foo;               -- True
-        begin
-            ...
-        end A;
-
         package body A is                -- True
             procedure B is               -- True
                 procedure Foo is null;   -- False
@@ -1327,11 +1328,34 @@ class BasicDecl(AdaNode):
                 ...
             end B;
         end A;
+
+        procedure A is                   -- True
+            procedure Foo;               -- True
+        begin
+            ...
+        end A;
+
+        procedure A is                   -- True
+            package body B is            -- False
+                procedure Foo is null;   -- False
+            end B;
+        begin
+            ...
+        end A;
+
+        procedure A is                   -- True
+            package B is                 -- True
+            end B;
+
+            package body B is            -- True
+            end B;
+        begin
+        end A;
         """
         return Self.children_env.env_node.then(
             lambda node: node.cast(BasicDecl).then(
                 lambda bd: bd.has_top_level_env_name_impl(
-                    allow_bodies=Self.is_a(Body)
+                    allow_bodies=True
                 )
             ),
             default_val=True
