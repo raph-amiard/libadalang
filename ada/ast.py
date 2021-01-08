@@ -1362,7 +1362,8 @@ class BasicDecl(AdaNode):
         )
 
     @langkit_property(return_type=T.String)
-    def syntactic_fqn():
+    def syntactic_fqn_impl(first=(Bool, False)):
+        self_env = Var(If(first, Self.children_env, Self.node_env))
         return Cond(
             Self.is_compilation_unit_root,
             Self.sym_join(
@@ -1373,15 +1374,19 @@ class BasicDecl(AdaNode):
             Self.is_a(
                 BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
             ),
-            Self.children_env.env_node.cast(BasicDecl).then(
+            self_env.env_node.cast(BasicDecl).then(
                 lambda bd:
-                bd.syntactic_fqn
+                bd.syntactic_fqn_impl
                     .concat(String("."))
                     .concat(Self.name_symbol.image),
             ),
 
             No(T.String)
         )
+
+    @langkit_property(return_type=T.String)
+    def syntactic_fqn():
+        return Self.syntactic_fqn_impl(first=True)
 
     @langkit_property(return_type=T.String)
     def top_level_env_name():
