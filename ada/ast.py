@@ -1364,24 +1364,19 @@ class BasicDecl(AdaNode):
     @langkit_property(return_type=T.String)
     def syntactic_fqn_impl(first=(Bool, False)):
         self_env = Var(If(first, Self.children_env, Self.node_env))
-        return Cond(
+        return If(
             Self.is_compilation_unit_root,
             Self.sym_join(
                 Self.enclosing_compilation_unit.syntactic_fully_qualified_name,
                 String(".")
             ),
 
-            Self.is_a(
-                BasePackageDecl, PackageBody, BasicSubpDecl, BaseSubpBody
-            ),
             self_env.env_node.cast(BasicDecl).then(
                 lambda bd:
                 bd.syntactic_fqn_impl
                     .concat(String("."))
                     .concat(Self.name_symbol.image),
-            ),
-
-            No(T.String)
+            )
         )
 
     @langkit_property(return_type=T.String)
@@ -2854,18 +2849,12 @@ class BodyStub(Body):
 
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
-        return Self.sym_join(
-            Self.syntactic_fully_qualified_name, String(".")
-        ).to_symbol
+        return Self.top_level_env_name.to_symbol
 
     @langkit_property(return_type=T.Symbol.array)
     def env_names():
         return Array([
-            Self.sym_join(
-                Self.syntactic_fully_qualified_name, String(".")
-            ).concat(
-                String("__stub")
-            ).to_symbol
+            Self.top_level_env_name.concat(String("__stub")).to_symbol
         ])
 
 @abstract
@@ -6643,7 +6632,12 @@ class BasicSubpDecl(BasicDecl):
             lambda ds: ds.semantic_parent.cast(T.BasicDecl)
         ))
 
+        default_next_part = Var(Entity.basic_decl_next_part_for_decl)
+
         return Cond(
+            Not(default_next_part.is_null),
+            default_next_part,
+
             # Self is a library level subprogram decl. Return the library unit
             # body's root decl.
             Self.parent.cast(T.GenericSubpDecl)
