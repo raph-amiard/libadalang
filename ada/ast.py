@@ -2148,7 +2148,7 @@ class BasicDecl(AdaNode):
             Self.is_a(T.GenericSubpInternal), Entity.parent.children_env,
             Entity.children_env
         ).get_first(
-            If(Self.is_a(BasicSubpDecl), Self.name_symbol, '__nextpart'),
+            '__nextpart',
             lookup=LK.flat,
             categories=noprims
         ).cast(T.BasicDecl)
@@ -14009,6 +14009,19 @@ class BaseSubpBody(Body):
         add_to_env_kv(
             key=Entity.name_symbol,
             val=Self
+        ),
+
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.top_level_env_name.to_symbol,
+            fallback_env_expr=env.bind(
+                Self.default_initial_env,
+                Self.initial_env(
+                    Entity.body_scope(follow_private=False,
+                                      force_decl=True)
+                )
+            )
         ),
 
         add_env(transitive_parent=True),
