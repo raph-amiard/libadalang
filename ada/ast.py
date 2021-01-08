@@ -779,6 +779,18 @@ class AdaNode(ASTNode):
             )
         )
 
+    @langkit_property(return_type=T.UseClause.array)
+    def top_level_use_clauses():
+        """
+        If Self is a library item or a subunit, return a flat list of all names
+        for top-level UseClause nodes.
+        """
+        cu = Var(Self.parent.parent.cast_or_raise(T.CompilationUnit))
+        return cu.prelude.filtermap(
+            lambda p: p.cast(UseClause),
+            lambda p: p.is_a(UseClause)
+        )
+
     @langkit_property(return_type=T.Name.array)
     def top_level_with_package_clauses():
         """
@@ -792,29 +804,16 @@ class AdaNode(ASTNode):
         )
 
     @langkit_property()
-    def use_packages_in_spec_of_subp_body():
+    def use_clauses_in_spec_of_subp_body():
         """
         If Self is a library-level SubpBody, fetch the environments USE'd in
         its declaration.
         """
-        return Let(lambda subpb=Self.cast(T.BaseSubpBody): If(
-            subpb.parent.is_a(T.LibraryItem),
-
-            imprecise_fallback.bind(False, subpb.as_bare_entity.decl_part)
-            .then(
-                lambda subp_decl: subp_decl.top_level_use_package_clauses.map(
-                    lambda use_name:
-                    origin.bind(use_name.origin_node, env.bind(
-                        use_name.node_env,
-                        use_name.cast_or_raise(T.Name)
-                        .as_bare_entity.designated_env
-                    ))
-                ).env_group(),
-                default_val=EmptyEnv
-            ),
-
-            EmptyEnv
-        ))
+        body = Var(Self.cast_or_raise(BaseSubpBody).as_bare_entity)
+        decl = Var(imprecise_fallback.bind(True, body.decl_part))
+        return decl._.top_level_use_clauses.map(
+            lambda clause: clause.as_bare_entity.used_envs
+        ).env_group()
 
     @langkit_property()
     def use_clauses_in_generic_formal_part():
@@ -14033,8 +14032,8 @@ class BaseSubpBody(Body):
         # there is one.
         reference(
             Self.cast(T.AdaNode)._.singleton,
-            through=T.AdaNode.use_packages_in_spec_of_subp_body,
-            cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
+            through=T.AdaNode.use_clauses_in_spec_of_subp_body,
+            cond=Self.parent.is_a(T.LibraryItem)
         ),
 
         reference(
