@@ -1321,12 +1321,17 @@ class BasicDecl(AdaNode):
         it is a child package declaration, in which case we use the name of
         its parent.
         """
-        return If(
-            # todo: check if it is a child package declaration
-            Self.is_library_item,
+        defining_name = Var(Self.as_bare_entity.defining_name)
+        child_name = Var(defining_name.name.cast(DottedName))
+        return Cond(
+            defining_name.name_is('standard'),
+            No(T.Symbol),
 
-            # todo: get the fqn  of the parent package
-            Self.top_level_env_name.concat(String(".__privatepart")).to_symbol,
+            Self.is_library_item,
+            child_name.then(
+                lambda n: n.prefix.name_symbol,
+                default_val='standard'
+            ),
 
             No(T.Symbol)
         )
