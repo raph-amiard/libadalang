@@ -2620,14 +2620,12 @@ class Body(BasicDecl):
             lambda _=T.TaskBodyStub: Entity.task_previous_part
         ))
 
-        # HACK: All previous_part implems except the one for subprograms skip
-        # stubs. In that case, go forward again to find the stub if there is
-        # one. TODO: It would be cleaner if the previous_part implems returned
+        # TODO: It would be cleaner if the previous_part implems returned
         # the stubs, but for the moment they're not even added to the lexical
         # environments.
 
         return If(
-            Entity.is_subprogram | Entity.is_a(BodyStub),
+            Entity.is_a(BodyStub),
             pp,
             Let(lambda pp_next_part=pp._.next_part_for_decl: If(
                 pp_next_part.is_a(BodyStub),
@@ -14021,6 +14019,14 @@ class BaseSubpBody(Body):
             Self.body_initial_env_name
         )
 
+    @langkit_property(return_type=T.Symbol)
+    def previous_part_env_name():
+        return If(
+            Self.is_subunit,
+            Self.top_level_env_name.concat(String("__stub")).to_symbol,
+            Self.top_level_env_name.to_symbol
+        )
+
     env_spec = EnvSpec(
         do(Self.env_hook),
 
@@ -14037,7 +14043,7 @@ class BaseSubpBody(Body):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.top_level_env_name.to_symbol,
+            name_expr=Self.previous_part_env_name,
             fallback_env_expr=env.bind(
                 Self.default_initial_env,
                 Self.initial_env(
@@ -15210,11 +15216,12 @@ class SubpBodyStub(BodyStub):
     # what we put in lexical environment is their SubpSpec child.
 
     env_spec = EnvSpec(
-        set_initial_env_by_name(
-            Self.initial_env_name,
-            No(T.LexicalEnv)  # fallback should never be reached
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.top_level_env_name.to_symbol,
+            fallback_env_expr=No(T.LexicalEnv)
         ),
-        add_to_env_kv('__nextpart', Self),
         add_env(names=Self.env_names)
     )
 
