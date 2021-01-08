@@ -6,7 +6,8 @@ from langkit.dsl import (
 )
 from langkit.envs import (
     EnvSpec, RefKind, add_env, add_to_env, add_to_env_kv, do,
-    handle_children, reference, set_initial_env, set_initial_env_by_name
+    handle_children, reference, set_initial_env, set_initial_env_by_name,
+    add_to_env_by_name
 )
 from langkit.expressions import (
     AbstractKind, AbstractProperty, And, ArrayLiteral as Array, BigIntLiteral,
@@ -14687,19 +14688,15 @@ class PackageBody(Body):
             Self.default_initial_env
         ),
 
-        add_to_env_kv(
+        add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            dest_env=If(
-                Self.has_top_level_env_name,
-                # todo: use the name env of the public part of the package decl
-                No(T.LexicalEnv),
-                env.bind(
-                    Self.default_initial_env,
-                    Self.initial_env(
-                        Entity.body_scope(follow_private=False,
-                                          force_decl=True)
-                    )
+            name_expr=Self.top_level_env_name.to_symbol,
+            fallback_env_expr=env.bind(
+                Self.default_initial_env,
+                Self.initial_env(
+                    Entity.body_scope(follow_private=False,
+                                      force_decl=True)
                 )
             )
         ),
