@@ -6341,11 +6341,10 @@ class UseTypeClause(UseClause):
             Self.initial_env_name,
             Self.default_initial_env
         ),
-        handle_children(),
         reference(
             Self.types.map(lambda n: n.cast(AdaNode)),
             T.Name.name_designated_type_env,
-            dest_env=Self.node_env,
+
             # We don't want to process use clauses that appear in the top-level
             # scope here, as they apply to the library item's environment,
             # which is not processed at this point yet. See CompilationUnit's
@@ -14850,9 +14849,7 @@ class PackageBody(Body):
 
         # We make a transitive parent link only when the package is a library
         # level package.
-        add_env(transitive_parent=And(
-            Self.is_compilation_unit_root, Not(Self.is_subunit)
-        )),
+        add_env(transitive_parent=Self.is_library_item),
 
         do(Self.populate_dependent_units),
         reference(
