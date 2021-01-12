@@ -6282,7 +6282,14 @@ class UseClause(AdaNode):
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
         return Self.parent.parent.cast(CompilationUnit).then(
-            lambda cu: cu.decl.child_decl_initial_env_name
+            lambda cu: Let(
+                lambda decl=cu.decl:
+                If(
+                    decl.is_library_item,
+                    decl.child_decl_initial_env_name,
+                    decl.cast_or_raise(Body).body_initial_env_name
+                )
+            )
         )
 
 
@@ -6299,13 +6306,7 @@ class UsePackageClause(UseClause):
         ),
         reference(
             Self.packages.map(lambda n: n.cast(AdaNode)),
-            T.Name.use_package_name_designated_env,
-
-            # We don't want to process use clauses that appear in the top-level
-            # scope here, as they apply to the library item's environment,
-            # which is not processed at this point yet. See CompilationUnit's
-            # ref_env_nodes.
-            cond=Not(Self.parent.parent.is_a(T.CompilationUnit))
+            T.Name.use_package_name_designated_env
         )
     )
 
@@ -6343,13 +6344,7 @@ class UseTypeClause(UseClause):
         ),
         reference(
             Self.types.map(lambda n: n.cast(AdaNode)),
-            T.Name.name_designated_type_env,
-
-            # We don't want to process use clauses that appear in the top-level
-            # scope here, as they apply to the library item's environment,
-            # which is not processed at this point yet. See CompilationUnit's
-            # ref_env_nodes.
-            cond=Not(Self.parent.parent.is_a(T.CompilationUnit))
+            T.Name.name_designated_type_env
         ),
     )
 
@@ -7490,17 +7485,7 @@ class PackageDecl(BasePackageDecl):
 
         add_env(names=Self.env_names),
 
-        do(Self.populate_dependent_units),
-        reference(
-            Self.top_level_use_package_clauses,
-            through=T.Name.use_package_name_designated_env,
-            cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
-        ),
-        reference(
-            Self.top_level_use_type_clauses,
-            through=T.Name.name_designated_type_env,
-            cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
-        )
+        do(Self.populate_dependent_units)
     )
 
 
@@ -14852,16 +14837,7 @@ class PackageBody(Body):
         add_env(transitive_parent=Self.is_library_item),
 
         do(Self.populate_dependent_units),
-        reference(
-            Self.top_level_use_package_clauses,
-            through=T.Name.use_package_name_designated_env,
-            cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
-        ),
-        reference(
-            Self.top_level_use_type_clauses,
-            through=T.Name.name_designated_type_env,
-            cond=Self.parent.is_a(T.LibraryItem, T.Subunit)
-        ),
+
         reference(
             Self.cast(T.AdaNode)._.singleton,
             through=T.AdaNode.nested_generic_formal_part,
