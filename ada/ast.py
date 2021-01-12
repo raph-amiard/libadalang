@@ -1272,7 +1272,7 @@ class BasicDecl(AdaNode):
 
     @langkit_property(return_type=T.Bool)
     def has_top_level_env_name_impl(allow_bodies=Bool):
-        is_decl = Var(Self.is_a(BasePackageDecl, BasicSubpDecl))
+        is_decl = Var(Self.is_a(BasePackageDecl, BasicSubpDecl, GenericDecl))
         is_body = Var(Self.is_a(Body))
         return And(
             is_decl | (allow_bodies & is_body),
@@ -1364,12 +1364,15 @@ class BasicDecl(AdaNode):
     @langkit_property(return_type=T.String)
     def syntactic_fqn_impl(first=(Bool, False)):
         self_env = Var(If(first, Self.children_env, Self.node_env))
-        return If(
+        return Cond(
             Self.is_compilation_unit_root,
             Self.sym_join(
                 Self.enclosing_compilation_unit.syntactic_fully_qualified_name,
                 String(".")
             ),
+
+            Self.is_a(GenericPackageInternal, GenericSubpInternal),
+            Self.parent.cast(BasicDecl).syntactic_fqn_impl,
 
             self_env.env_node.cast(BasicDecl).then(
                 lambda bd:
@@ -2168,10 +2171,7 @@ class BasicDecl(AdaNode):
             )
         ))
 
-        return If(
-            Self.is_a(T.GenericSubpInternal), Entity.parent.children_env,
-            Entity.children_env
-        ).get_first(
+        return Entity.children_env.get_first(
             '__nextpart',
             lookup=LK.flat,
             categories=noprims
@@ -8196,7 +8196,8 @@ class GenericSubpInternal(BasicSubpDecl):
     aspects = Field(type=T.AspectSpec)
 
     subp_decl_spec = Property(Entity.subp_spec)
-    env_spec = EnvSpec(add_env())
+
+    env_spec = EnvSpec(add_env(names=Self.env_names))
 
     @langkit_property(return_type=T.GenericSubpInstantiation.entity)
     def get_instantiation():
@@ -8334,7 +8335,8 @@ class GenericPackageDecl(GenericDecl):
     defining_env = Property(Entity.package_decl.defining_env)
 
     defining_names = Property(
-        Self.package_decl.package_name.as_entity.singleton)
+        Self.package_decl.package_name.as_entity.singleton
+    )
 
     @langkit_property(public=True)
     def body_part():
