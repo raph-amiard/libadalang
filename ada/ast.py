@@ -6243,6 +6243,22 @@ class WithClause(AdaNode):
         Entity.packages.logic_all(lambda p: p.xref_no_overloading)
     )
 
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        decl = Var(Self.enclosing_compilation_unit.decl)
+        return If(
+            decl.is_library_item,
+            decl.child_decl_initial_env_name,
+            decl.cast_or_raise(Body).body_initial_env_name
+        )
+
+    env_spec = EnvSpec(
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            No(T.LexicalEnv)
+        )
+    )
+
 
 @abstract
 class UseClause(AdaNode):
@@ -6263,6 +6279,12 @@ class UseClause(AdaNode):
             utc.types.map(lambda n: n.name_designated_type_env).env_group()
         )
 
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        return Self.parent.parent.cast(CompilationUnit).then(
+            lambda cu: cu.decl.child_decl_initial_env_name
+        )
+
 
 class UsePackageClause(UseClause):
     """
@@ -6270,16 +6292,22 @@ class UsePackageClause(UseClause):
     """
     packages = Field(type=T.Name.list)
 
-    env_spec = EnvSpec(reference(
-        Self.packages.map(lambda n: n.cast(AdaNode)),
-        T.Name.use_package_name_designated_env,
+    env_spec = EnvSpec(
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            Self.default_initial_env
+        ),
+        reference(
+            Self.packages.map(lambda n: n.cast(AdaNode)),
+            T.Name.use_package_name_designated_env,
 
-        # We don't want to process use clauses that appear in the top-level
-        # scope here, as they apply to the library item's environment,
-        # which is not processed at this point yet. See CompilationUnit's
-        # ref_env_nodes.
-        cond=Not(Self.parent.parent.is_a(T.CompilationUnit))
-    ))
+            # We don't want to process use clauses that appear in the top-level
+            # scope here, as they apply to the library item's environment,
+            # which is not processed at this point yet. See CompilationUnit's
+            # ref_env_nodes.
+            cond=Not(Self.parent.parent.is_a(T.CompilationUnit))
+        )
+    )
 
     @langkit_property(return_type=LexicalEnv.array)
     def designated_envs():
@@ -6309,6 +6337,10 @@ class UseTypeClause(UseClause):
     types = Field(type=T.Name.list)
 
     env_spec = EnvSpec(
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            Self.default_initial_env
+        ),
         handle_children(),
         reference(
             Self.types.map(lambda n: n.cast(AdaNode)),
@@ -13958,27 +13990,6 @@ class CompilationUnit(AdaNode):
                 "text_io", "wide_text_io", "wide_wide_text_io"
             )
         )
-
-    env_spec = EnvSpec(
-        set_initial_env(Let(
-            lambda n=Self.body.cast(T.LibraryItem).then(
-                lambda i: i.item.as_bare_entity.defining_name
-            ):
-
-            Cond(
-                Self.body.is_a(T.Subunit), Self.std_env,
-
-                n.is_null, Self.default_initial_env,
-
-                # If self is Standard package, then register self in the root
-                # env.
-                n.name.is_a(T.BaseId) & (n.name_is('Standard')),
-                Self.default_initial_env,
-
-                Self.std_env
-            )
-        ), unsound=True)
-    )
 
 
 @abstract
