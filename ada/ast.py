@@ -1395,7 +1395,7 @@ class BasicDecl(AdaNode):
         )
 
     @langkit_property(return_type=T.Symbol)
-    def child_decl_initial_env_name():
+    def child_decl_initial_env_name(private_part=(T.Bool, False)):
         """
         A top level decl (package, subprogram) has a named parent env only if
         it is a child package declaration, in which case we use the name of
@@ -1409,7 +1409,11 @@ class BasicDecl(AdaNode):
 
             Self.is_library_item,
             child_name.then(
-                lambda n: n.prefix.name_symbol,
+                lambda n: If(
+                    private_part,
+                    n.prefix.text.concat(String(".__privatepart")).to_symbol,
+                    n.prefix.text.to_symbol
+                ),
                 default_val='standard'
             ),
 
@@ -6739,7 +6743,6 @@ class BasicSubpDecl(BasicDecl):
             Self.default_initial_env
         ),
 
-        # todo: add to the public part
         add_to_env_kv(
             key=Entity.name_symbol,
             val=Self
@@ -7473,14 +7476,15 @@ class PackageDecl(BasePackageDecl):
         do(Self.env_hook),
 
         set_initial_env_by_name(
-            Self.child_decl_initial_env_name,
+            Self.child_decl_initial_env_name(True),
             Self.default_initial_env
         ),
 
-        # todo: Self should be added in the public part
-        add_to_env_kv(
+        add_to_env_by_name(
             key=Entity.name_symbol,
-            val=Self
+            val=Self,
+            name_expr=Self.child_decl_initial_env_name(False),
+            fallback_env_expr=Self.default_initial_env
         ),
 
         add_env(names=Self.env_names),
@@ -14013,10 +14017,10 @@ class BaseSubpBody(Body):
         return Entity.subp_spec_or_null._.return_type
 
     @langkit_property(return_type=T.Symbol)
-    def initial_env_name():
+    def initial_env_name(follow_private=(Bool, False)):
         return If(
             Self.is_library_item,
-            Self.child_decl_initial_env_name,
+            Self.child_decl_initial_env_name(follow_private),
             Self.body_initial_env_name
         )
 
@@ -14024,7 +14028,7 @@ class BaseSubpBody(Body):
         do(Self.env_hook),
 
         set_initial_env_by_name(
-            Self.initial_env_name,
+            Self.initial_env_name(True),
             Self.default_initial_env
         ),
 
