@@ -2208,40 +2208,6 @@ class BasicDecl(AdaNode):
             lambda other: other
         )).cast(T.Body)
 
-    @langkit_property(dynamic_vars=[env])
-    def decl_scope(follow_private=(Bool, True)):
-        scope = Var(Entity.defining_name.parent_scope)
-
-        # If this the corresponding decl is a generic, go grab the internal
-        # package decl. Then If the package has a private part, then get the
-        # private part, else return the public part.
-        return Let(
-            lambda public_scope=scope.env_node.cast(T.GenericPackageDecl).then(
-                lambda gen_pkg_decl: If(
-                    Self.is_a(FormalSubpDecl),
-                    scope,
-                    gen_pkg_decl.package_decl.children_env,
-                ),
-                default_val=scope
-            ): If(
-                And(
-                    follow_private,
-                    public_scope.env_node._.is_a(
-                        T.BasePackageDecl, T.SingleProtectedDecl,
-                        T.ProtectedTypeDecl
-                    )
-                ),
-
-                # Don't try to go to private part if we're not in a package
-                # decl.
-
-                public_scope.get('__privatepart', lookup=LK.flat).at(0).then(
-                    lambda pp: pp.children_env, default_val=public_scope
-                ),
-                public_scope
-            )
-        )
-
     @langkit_property(return_type=T.SingleTokNode.array)
     def fully_qualified_name_impl():
         """
