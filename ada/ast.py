@@ -7912,12 +7912,21 @@ class PackageRenamingDecl(BasicDecl):
 
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Entity.name.parent_scope)),
-                        unsound=True),
-        add_to_env(new_env_assoc(key=Entity.name_symbol, val=Self)),
+
+        set_initial_env_by_name(
+            Self.child_decl_initial_env_name,
+            Self.default_initial_env
+        ),
+
+        add_to_env_kv(
+            key=Entity.name_symbol,
+            val=Self
+        ),
+
         add_env(),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
@@ -7975,12 +7984,21 @@ class GenericPackageRenamingDecl(GenericRenamingDecl):
 
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Self.name.parent_scope)),
-                        unsound=True),
-        add_to_env(new_env_assoc(key=Entity.name_symbol, val=Self)),
+
+        set_initial_env_by_name(
+            Self.child_decl_initial_env_name,
+            Self.default_initial_env
+        ),
+
+        add_to_env_kv(
+            key=Entity.name_symbol,
+            val=Self
+        ),
+
         add_env(),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
@@ -8008,11 +8026,21 @@ class GenericSubpRenamingDecl(GenericRenamingDecl):
     """
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Self.name.parent_scope))),
-        add_to_env(new_env_assoc(key=Entity.name_symbol, val=Self)),
+
+        set_initial_env_by_name(
+            Self.child_decl_initial_env_name,
+            Self.default_initial_env
+        ),
+
+        add_to_env_kv(
+            key=Entity.name_symbol,
+            val=Self
+        ),
+
         add_env(),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
