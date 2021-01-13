@@ -1274,7 +1274,7 @@ class BasicDecl(AdaNode):
     def has_top_level_env_name_impl(allow_bodies=Bool):
         is_decl = Var(Self.is_a(BasePackageDecl, BasicSubpDecl, GenericDecl))
         is_body = Var(Self.is_a(Body))
-        return And(
+        return Self.is_compilation_unit_root | And(
             is_decl | (allow_bodies & is_body),
             Self.node_env.env_node.then(
                 lambda node: node.cast(BasicDecl).then(
