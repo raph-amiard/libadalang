@@ -6087,9 +6087,15 @@ class TaskTypeDecl(BaseTypeDecl):
     definition = Field(type=T.TaskDef)
     is_task_type = Property(True)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.top_level_env_name.then(
+            lambda fqn: fqn.to_symbol.singleton
+        )
+
     env_spec = EnvSpec(
         add_to_env_kv(Entity.name_symbol, Self),
-        add_env()
+        add_env(names=Self.env_names)
     )
 
     defining_env = Property(Entity.children_env)
@@ -7064,9 +7070,15 @@ class SingleTaskDecl(BasicDecl):
 
     defining_env = Property(Entity.task_type.defining_env)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.top_level_env_name.then(
+            lambda fqn: fqn.to_symbol.singleton
+        )
+
     env_spec = EnvSpec(
         add_to_env_kv(Self.name_symbol, Self),
-        add_env()
+        add_env(names=Self.env_names)
     )
 
 
@@ -15000,20 +15012,24 @@ class TaskBody(Body):
 
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Entity.body_scope(True))),
-                        unsound=True),
-        add_to_env(Self.env_assoc(
-            '__nextpart',
-            env.bind(
-                Self.default_initial_env,
 
-                If(Self.is_subunit,
-                   Entity.subunit_stub_env,
-                   Entity.body_scope(False, True)
-                   ._or(Entity.body_scope(False, False)))
-            ),
-        ), unsound=True),
+        set_initial_env_by_name(
+            Self.body_initial_env_name,
+            Self.default_initial_env
+        ),
+
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.previous_part_env_name,
+            fallback_env_expr=env.bind(
+                Self.default_initial_env,
+                Self.initial_env(
+                    Entity.body_scope(follow_private=False,
+                                      force_decl=True)
+                )
+            )
+        ),
 
         add_env(),
 
@@ -15309,9 +15325,13 @@ class TaskBodyStub(BodyStub):
     defining_names = Property(Entity.name.singleton)
 
     env_spec = EnvSpec(
-        add_to_env_kv('__nextpart', Self, dest_env=Entity.stub_decl_env,
-                      unsound=True),
-        add_env(),
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.top_level_env_name.to_symbol,
+            fallback_env_expr=No(T.LexicalEnv)
+        ),
+        add_env(names=Self.env_names)
     )
 
 
