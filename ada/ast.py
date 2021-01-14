@@ -6902,6 +6902,24 @@ class Pragma(AdaNode):
         )
 
 
+    @langkit_property(return_type=T.Symbol)
+    def initial_env_name():
+        p = Var(Self.parent)
+        gp = Var(Self.parent.parent)
+        return If(
+            p.is_a(CompilationUnit) | gp.is_a(CompilationUnit),
+            Self.enclosing_compilation_unit.decl.top_level_env_name.to_symbol,
+            No(T.Symbol)
+        )
+
+    env_spec = EnvSpec(
+        set_initial_env_by_name(
+            Self.initial_env_name,
+            Self.default_initial_env
+        )
+    )
+
+
 class PragmaArgumentAssoc(BaseAssoc):
     """
     Argument assocation in a pragma.
