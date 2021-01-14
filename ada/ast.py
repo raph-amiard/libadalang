@@ -4,17 +4,19 @@ from langkit.dsl import (
     LookupKind as LK, NullField, Struct, Symbol, T, UserField, abstract,
     env_metadata, has_abstract_list, synthetic
 )
+
 from langkit.envs import (
-    EnvSpec, RefKind, add_env, add_to_env, add_to_env_kv, do,
-    handle_children, reference, set_initial_env, set_initial_env_by_name,
-    add_to_env_by_name
+    EnvSpec, RefKind, add_env, add_to_env, add_to_env_by_name, add_to_env_kv,
+    do, handle_children, reference, set_initial_env, set_initial_env_by_name
 )
+
 from langkit.expressions import (
     AbstractKind, AbstractProperty, And, ArrayLiteral as Array, BigIntLiteral,
     Bind, Cond, DynamicLexicalEnv, DynamicVariable, EmptyEnv, Entity, If, Let,
     Literal, No, Not, Or, Property, PropertyError, RefCategories, Self, String,
     Try, Var, ignore, langkit_property, lazy_field, new_env_assoc
 )
+
 from langkit.expressions.logic import LogicFalse, LogicTrue, Predicate
 
 
@@ -1272,7 +1274,11 @@ class BasicDecl(AdaNode):
 
     @langkit_property(return_type=T.Bool)
     def has_top_level_env_name_impl(allow_bodies=Bool):
-        is_decl = Var(Self.is_a(BasePackageDecl, BasicSubpDecl, GenericDecl))
+        is_decl = Var(Self.is_a(
+            BasePackageDecl, BasicSubpDecl, GenericDecl,
+            TaskTypeDecl, ProtectedTypeDecl,
+            SingleTaskDecl, SingleProtectedDecl
+        ))
         is_body = Var(Self.is_a(Body))
         return Self.is_compilation_unit_root | And(
             is_decl | (allow_bodies & is_body),
@@ -1304,60 +1310,61 @@ class BasicDecl(AdaNode):
     @langkit_property(return_type=T.Bool)
     def has_top_level_env_name():
         """
-        package A is                     -- True
-            package B is                 -- True
-                procedure Foo;           -- True
-            end B;
-        end A;
+        code-block::
+            package A is                     -- True
+                package B is                 -- True
+                    procedure Foo;           -- True
+                end B;
+            end A;
 
-        package body A is                -- True
-            package B is                 -- True
-                procedure Foo;           -- True
-            end B;
-        end A;
+            package body A is                -- True
+                package B is                 -- True
+                    procedure Foo;           -- True
+                end B;
+            end A;
 
-        package body A is                -- True
-            package body B is            -- True
-                procedure Foo;           -- False
-            end B;
-        end A;
+            package body A is                -- True
+                package body B is            -- True
+                    procedure Foo;           -- False
+                end B;
+            end A;
 
-        package body A is                -- True
-            package body B is            -- True
-                procedure Foo is null;   -- True
-            end B;
-        end A;
+            package body A is                -- True
+                package body B is            -- True
+                    procedure Foo is null;   -- True
+                end B;
+            end A;
 
-        package body A is                -- True
-            procedure B is               -- True
-                procedure Foo is null;   -- False
+            package body A is                -- True
+                procedure B is               -- True
+                    procedure Foo is null;   -- False
+                begin
+                    ...
+                end B;
+            end A;
+
+            procedure A is                   -- True
+                procedure Foo;               -- True
             begin
                 ...
-            end B;
-        end A;
+            end A;
 
-        procedure A is                   -- True
-            procedure Foo;               -- True
-        begin
-            ...
-        end A;
+            procedure A is                   -- True
+                package body B is            -- False
+                    procedure Foo is null;   -- False
+                end B;
+            begin
+                ...
+            end A;
 
-        procedure A is                   -- True
-            package body B is            -- False
-                procedure Foo is null;   -- False
-            end B;
-        begin
-            ...
-        end A;
+            procedure A is                   -- True
+                package B is                 -- True
+                end B;
 
-        procedure A is                   -- True
-            package B is                 -- True
-            end B;
-
-            package body B is            -- True
-            end B;
-        begin
-        end A;
+                package body B is            -- True
+                end B;
+            begin
+            end A;
         """
         return Self.children_env.env_node.then(
             lambda node: node.cast(BasicDecl).then(
@@ -2846,6 +2853,7 @@ class BodyStub(Body):
         return Array([
             Self.top_level_env_name.concat(String("__stub")).to_symbol
         ])
+
 
 @abstract
 class BaseFormalParamDecl(BasicDecl):
@@ -6145,9 +6153,15 @@ class ProtectedTypeDecl(BaseTypeDecl):
     def xref_equation():
         return Entity.interfaces.logic_all(lambda ifc: ifc.xref_equation)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.top_level_env_name.then(
+            lambda fqn: fqn.to_symbol.singleton
+        )
+
     env_spec = EnvSpec(
         add_to_env_kv(Entity.name_symbol, Self),
-        add_env()
+        add_env(names=Self.env_names)
     )
 
 
@@ -6922,7 +6936,6 @@ class Pragma(AdaNode):
             default_val=enclosing_program_unit.singleton
         )
 
-
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
         p = Var(Self.parent)
@@ -7101,9 +7114,15 @@ class SingleProtectedDecl(BasicDecl):
     def xref_equation():
         return Entity.interfaces.logic_all(lambda ifc: ifc.xref_equation)
 
+    @langkit_property(return_type=T.Symbol.array)
+    def env_names():
+        return Self.top_level_env_name.then(
+            lambda fqn: fqn.to_symbol.singleton
+        )
+
     env_spec = EnvSpec(
         add_to_env_kv(Entity.name_symbol, Self),
-        add_env()
+        add_env(names=Self.env_names)
     )
 
 
@@ -8793,6 +8812,7 @@ class Expr(AdaNode):
         before overloading analysis.
         """
         return env.bind(Self.node_env, Entity.env_elements)
+
 
 class ContractCaseAssoc(BaseAssoc):
     """
@@ -15093,21 +15113,29 @@ class ProtectedBody(Body):
 
     env_spec = EnvSpec(
         do(Self.env_hook),
-        set_initial_env(env.bind(Self.default_initial_env,
-                                 Self.initial_env(Entity.body_scope(True))),
-                        unsound=True),
-        add_to_env(Self.env_assoc(
-            '__nextpart',
-            env.bind(
+
+        set_initial_env_by_name(
+            Self.body_initial_env_name,
+            Self.default_initial_env
+        ),
+
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.previous_part_env_name,
+            fallback_env_expr=env.bind(
                 Self.default_initial_env,
-                If(Self.is_subunit,
-                   Entity.subunit_stub_env,
-                   Entity.body_scope(False, True)
-                   ._or(Entity.body_scope(False, False)))
+                Self.initial_env(
+                    Entity.body_scope(follow_private=False,
+                                      force_decl=True)
+                )
             )
-        ), unsound=True),
+        ),
+
         add_env(),
+
         do(Self.populate_dependent_units),
+
         reference(
             Self.top_level_use_package_clauses,
             through=T.Name.use_package_name_designated_env,
@@ -15308,9 +15336,13 @@ class PackageBodyStub(BodyStub):
     defining_names = Property(Entity.name.singleton)
 
     env_spec = EnvSpec(
-        add_to_env_kv('__nextpart', Self, dest_env=Entity.stub_decl_env,
-                      unsound=True),
-        add_env(names=Self.env_names),
+        add_to_env_by_name(
+            key='__nextpart',
+            val=Self,
+            name_expr=Self.top_level_env_name.to_symbol,
+            fallback_env_expr=No(T.LexicalEnv)
+        ),
+        add_env(names=Self.env_names)
     )
 
 
