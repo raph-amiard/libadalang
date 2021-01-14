@@ -6251,14 +6251,10 @@ class UseClause(AdaNode):
 
     @langkit_property(return_type=T.Symbol)
     def initial_env_name():
-        return Self.parent.parent.cast(CompilationUnit).then(
-            lambda cu: Let(
-                lambda decl=cu.decl: If(
-                    decl.is_library_item,
-                    decl.child_decl_initial_env_name,
-                    decl.cast_or_raise(Body).body_initial_env_name
-                )
-            )
+        return If(
+            Self.parent.parent.is_a(CompilationUnit),
+            'Standard',
+            No(T.Symbol)
         )
 
 
