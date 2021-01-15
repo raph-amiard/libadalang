@@ -7485,8 +7485,8 @@ class PackageDecl(BasePackageDecl):
         add_to_env_by_name(
             key=Entity.name_symbol,
             val=Self,
-            name_expr=Self.child_decl_initial_env_name(False),
-            fallback_env_expr=Self.default_initial_env
+            name=Self.child_decl_initial_env_name(False),
+            fallback_env=Self.default_initial_env
         ),
 
         add_env(names=Self.env_names),
@@ -8371,8 +8371,8 @@ class GenericPackageDecl(GenericDecl):
         add_to_env_by_name(
             key=Entity.name_symbol,
             val=Self,
-            name_expr=Self.child_decl_initial_env_name(False),
-            fallback_env_expr=Self.default_initial_env
+            name=Self.child_decl_initial_env_name(False),
+            fallback_env=Self.default_initial_env
         ),
 
         add_env(),
@@ -14123,8 +14123,8 @@ class BaseSubpBody(Body):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.previous_part_env_name,
-            fallback_env_expr=env.bind(
+            name=Self.previous_part_env_name,
+            fallback_env=env.bind(
                 Self.default_initial_env,
                 Self.initial_env(
                     Entity.body_scope(follow_private=False,
@@ -14911,8 +14911,8 @@ class PackageBody(Body):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.previous_part_env_name,
-            fallback_env_expr=env.bind(
+            name=Self.previous_part_env_name,
+            fallback_env=env.bind(
                 Self.default_initial_env,
                 Self.initial_env(
                     Entity.body_scope(follow_private=False,
@@ -15038,8 +15038,8 @@ class TaskBody(Body):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.previous_part_env_name,
-            fallback_env_expr=env.bind(
+            name=Self.previous_part_env_name,
+            fallback_env=env.bind(
                 Self.default_initial_env,
                 Self.initial_env(
                     Entity.body_scope(follow_private=False,
@@ -15119,8 +15119,8 @@ class ProtectedBody(Body):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.previous_part_env_name,
-            fallback_env_expr=env.bind(
+            name=Self.previous_part_env_name,
+            fallback_env=env.bind(
                 Self.default_initial_env,
                 Self.initial_env(
                     Entity.body_scope(follow_private=False,
@@ -15289,8 +15289,8 @@ class ProtectedBodyStub(BodyStub):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.top_level_env_name.to_symbol,
-            fallback_env_expr=No(T.LexicalEnv)
+            name=Self.top_level_env_name.to_symbol,
+            fallback_env=No(T.LexicalEnv)
         ),
         add_env(names=Self.env_names)
     )
@@ -15317,8 +15317,8 @@ class SubpBodyStub(BodyStub):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.top_level_env_name.to_symbol,
-            fallback_env_expr=No(T.LexicalEnv)
+            name=Self.top_level_env_name.to_symbol,
+            fallback_env=No(T.LexicalEnv)
         ),
         add_env(names=Self.env_names)
     )
@@ -15340,8 +15340,8 @@ class PackageBodyStub(BodyStub):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.top_level_env_name.to_symbol,
-            fallback_env_expr=No(T.LexicalEnv)
+            name=Self.top_level_env_name.to_symbol,
+            fallback_env=No(T.LexicalEnv)
         ),
         add_env(names=Self.env_names)
     )
@@ -15361,8 +15361,8 @@ class TaskBodyStub(BodyStub):
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
-            name_expr=Self.top_level_env_name.to_symbol,
-            fallback_env_expr=No(T.LexicalEnv)
+            name=Self.top_level_env_name.to_symbol,
+            fallback_env=No(T.LexicalEnv)
         ),
         add_env(names=Self.env_names)
     )
