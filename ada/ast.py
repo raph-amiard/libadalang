@@ -7622,7 +7622,7 @@ class GenericInstantiation(BasicDecl):
 
     nonbound_generic_decl = Property(
         Self.as_bare_entity.generic_entity_name
-        .all_env_elements(seq=True, seq_from=Self).find(
+        .all_env_elements(seq=True, seq_from=Self, categories=noprims).find(
             lambda e: Self.has_visibility(e)
         )._.match(
             lambda b=Body: imprecise_fallback.bind(False, b.decl_part),
@@ -9545,20 +9545,32 @@ class Name(Expr):
     @langkit_property(return_type=AdaNode.entity.array,
                       kind=AbstractKind.abstract_runtime_check,
                       dynamic_vars=[env, origin])
-    def all_env_els_impl(seq=(Bool, True),
-                         seq_from=(AdaNode, No(T.AdaNode))):
+    def all_env_els_impl(
+            seq=(Bool, True),
+            seq_from=(AdaNode, No(T.AdaNode)),
+            categories=(T.RefCategories, RefCategories(default=True))
+    ):
         pass
 
-    @langkit_property(public=True)
-    def all_env_elements(seq=(Bool, True),
-                         seq_from=(AdaNode, No(T.AdaNode))):
+    @langkit_property(public=False)
+    def all_env_elements(
+            seq=(Bool, True),
+            seq_from=(AdaNode, No(T.AdaNode)),
+            categories=(T.RefCategories, RefCategories(default=True))
+    ):
         """
         Return all elements in self's scope that are lexically named like Self.
         """
         return origin.bind(
             Self.origin_node,
-            env.bind(Entity.node_env,
-                     Entity.all_env_els_impl(seq=seq, seq_from=seq_from))
+            env.bind(
+                Entity.node_env,
+                Entity.all_env_els_impl(
+                    seq=seq,
+                    seq_from=seq_from,
+                    categories=categories
+                )
+            )
         )
 
     @langkit_property(public=True)
@@ -11497,9 +11509,12 @@ class DefiningName(Name):
     env_elements_impl = Property(Entity.name.env_elements_impl)
 
     @langkit_property()
-    def all_env_els_impl(seq=(Bool, True),
-                         seq_from=(AdaNode, No(T.AdaNode))):
-        return Entity.name.all_env_els_impl(seq, seq_from)
+    def all_env_els_impl(
+            seq=(Bool, True),
+            seq_from=(AdaNode, No(T.AdaNode)),
+            categories=(T.RefCategories, RefCategories(default=True))
+    ):
+        return Entity.name.all_env_els_impl(seq, seq_from, categories)
 
     basic_decl = Property(
         Self.parents.find(lambda p: p.is_a(T.BasicDecl))
@@ -12019,14 +12034,18 @@ class BaseId(SingleTokNode):
         return Entity.env_elements_baseid
 
     @langkit_property()
-    def all_env_els_impl(seq=(Bool, True),
-                         seq_from=(AdaNode, No(T.AdaNode))):
+    def all_env_els_impl(
+            seq=(Bool, True),
+            seq_from=(AdaNode, No(T.AdaNode)),
+            categories=(T.RefCategories, RefCategories(default=True))
+    ):
         return Self.env_get(
             env,
             Self.name_symbol,
             lookup=If(Self.is_prefix, LK.recursive, LK.flat),
             from_node=If(seq, If(Not(seq_from.is_null), seq_from, Self),
-                         No(T.AdaNode))
+                         No(T.AdaNode)),
+            categories=categories
         )
 
     @langkit_property(dynamic_vars=[env], memoized=True)
@@ -13806,10 +13825,16 @@ class DottedName(Name):
         return env.bind(pfx_env, Entity.suffix.designated_env)
 
     @langkit_property()
-    def all_env_els_impl(seq=(Bool, True),
-                         seq_from=(AdaNode, No(T.AdaNode))):
+    def all_env_els_impl(
+            seq=(Bool, True),
+            seq_from=(AdaNode, No(T.AdaNode)),
+            categories=(T.RefCategories, RefCategories(default=True))
+    ):
         pfx_env = Var(Entity.prefix.designated_env)
-        return env.bind(pfx_env, Entity.suffix.all_env_els_impl(seq, seq_from))
+        return env.bind(
+            pfx_env,
+            Entity.suffix.all_env_els_impl(seq, seq_from, categories)
+        )
 
     scope = Property(Self.suffix.then(
         lambda sfx: env.bind(Self.parent_scope, sfx.scope),
