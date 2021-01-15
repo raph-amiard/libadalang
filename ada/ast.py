@@ -878,16 +878,6 @@ class AdaNode(ASTNode):
         """
         return scope.then(lambda s: s, default_val=env)
 
-    @langkit_property()
-    def env_assoc(key=T.Symbol, dest_env=T.LexicalEnv):
-        """
-        Static method, helper for EnvSpecs. Return the env assoc for ``key``,
-        ``Self`` and ``dest`` if ``dest_env`` is not null, and a null env assoc
-        otherwise.
-        """
-        return dest_env.then(lambda env:
-                             new_env_assoc(key=key, val=Self, dest_env=env))
-
     @langkit_property(ignore_warn_on_node=True, public=True)
     def top_level_decl(unit=AnalysisUnit):
         """
@@ -2415,12 +2405,6 @@ class Body(BasicDecl):
         )
 
     @langkit_property()
-    def subunit_stub_env():
-        return Entity.subunit_decl_env.get(
-            '__nextpart', lookup=LK.flat, categories=noprims,
-        ).at(0).children_env
-
-    @langkit_property()
     def subunit_decl_env():
         return env.bind(
             Self.default_initial_env,
@@ -2635,18 +2619,6 @@ class Body(BasicDecl):
                 pp_next_part,
                 pp
             ))
-        )
-
-    @langkit_property()
-    def stub_decl_env():
-        return env.bind(
-            Entity.default_initial_env,
-            imprecise_fallback.bind(
-                False,
-                Entity.unbound_previous_part.then(
-                    lambda d: d.node.children_env
-                )
-            )
         )
 
     @langkit_property(return_type=T.BasicDecl.entity,
