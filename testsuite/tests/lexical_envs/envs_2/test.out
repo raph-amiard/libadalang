@@ -1,156 +1,127 @@
 CompilationUnit[1:1-10:9]
-|f_prelude:
+|prelude:
 |  AdaNodeList[1:1-1:1]: <empty list>
-|f_body:
+|body:
 |  LibraryItem[1:1-10:9]
-|  |f_has_private:
+|  |has_private:
 |  |  PrivateAbsent[1:1-1:1]
-|  |f_item:
+|  |item:
 |  |  PackageBody[1:1-10:9]
-|  |  |f_package_name:
+|  |  |package_name:
 |  |  |  DefiningName[1:14-1:17]
-|  |  |  |f_name:
+|  |  |  |name:
 |  |  |  |  Id[1:14-1:17]: Foo
-|  |  |f_aspects: <null>
-|  |  |f_decls:
+|  |  |aspects: <null>
+|  |  |decls:
 |  |  |  DeclarativePart[1:20-10:1]
-|  |  |  |f_decls:
+|  |  |  |decls:
 |  |  |  |  AdaNodeList[2:4-9:12]
 |  |  |  |  |  SubpBody[2:4-9:12]
-|  |  |  |  |  |f_overriding:
+|  |  |  |  |  |overriding:
 |  |  |  |  |  |  OverridingUnspecified[1:20-1:20]
-|  |  |  |  |  |f_subp_spec:
+|  |  |  |  |  |subp_spec:
 |  |  |  |  |  |  SubpSpec[2:4-2:34]
-|  |  |  |  |  |  |f_subp_kind:
+|  |  |  |  |  |  |subp_kind:
 |  |  |  |  |  |  |  SubpKindProcedure[2:4-2:13]
-|  |  |  |  |  |  |f_subp_name:
+|  |  |  |  |  |  |subp_name:
 |  |  |  |  |  |  |  DefiningName[2:14-2:17]
-|  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  Id[2:14-2:17]: Bar
-|  |  |  |  |  |  |f_subp_params:
+|  |  |  |  |  |  |subp_params:
 |  |  |  |  |  |  |  Params[2:18-2:34]
-|  |  |  |  |  |  |  |f_params:
+|  |  |  |  |  |  |  |params:
 |  |  |  |  |  |  |  |  ParamSpecList[2:19-2:33]
 |  |  |  |  |  |  |  |  |  ParamSpec[2:19-2:33]
-|  |  |  |  |  |  |  |  |  |f_ids:
+|  |  |  |  |  |  |  |  |  |ids:
 |  |  |  |  |  |  |  |  |  |  DefiningNameList[2:19-2:23]
 |  |  |  |  |  |  |  |  |  |  |  DefiningName[2:19-2:20]
-|  |  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  |  Id[2:19-2:20]: I
 |  |  |  |  |  |  |  |  |  |  |  DefiningName[2:22-2:23]
-|  |  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  |  Id[2:22-2:23]: J
-|  |  |  |  |  |  |  |  |  |f_has_aliased:
+|  |  |  |  |  |  |  |  |  |has_aliased:
 |  |  |  |  |  |  |  |  |  |  AliasedAbsent[2:25-2:25]
-|  |  |  |  |  |  |  |  |  |f_mode:
+|  |  |  |  |  |  |  |  |  |mode:
 |  |  |  |  |  |  |  |  |  |  ModeDefault[2:25-2:25]
-|  |  |  |  |  |  |  |  |  |f_type_expr:
+|  |  |  |  |  |  |  |  |  |type_expr:
 |  |  |  |  |  |  |  |  |  |  SubtypeIndication[2:26-2:33]
-|  |  |  |  |  |  |  |  |  |  |f_has_not_null:
+|  |  |  |  |  |  |  |  |  |  |has_not_null:
 |  |  |  |  |  |  |  |  |  |  |  NotNullAbsent[2:25-2:25]
-|  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  Id[2:26-2:33]: Integer
-|  |  |  |  |  |  |  |  |  |  |f_constraint: <null>
-|  |  |  |  |  |  |  |  |  |f_default_expr: <null>
-|  |  |  |  |  |  |f_subp_returns: <null>
-|  |  |  |  |  |f_aspects: <null>
-|  |  |  |  |  |f_decls:
+|  |  |  |  |  |  |  |  |  |  |constraint: <null>
+|  |  |  |  |  |  |  |  |  |default_expr: <null>
+|  |  |  |  |  |  |subp_returns: <null>
+|  |  |  |  |  |aspects: <null>
+|  |  |  |  |  |decls:
 |  |  |  |  |  |  DeclarativePart[2:37-3:4]
-|  |  |  |  |  |  |f_decls:
+|  |  |  |  |  |  |decls:
 |  |  |  |  |  |  |  AdaNodeList[2:37-2:37]: <empty list>
-|  |  |  |  |  |f_stmts:
+|  |  |  |  |  |stmts:
 |  |  |  |  |  |  HandledStmts[3:9-9:4]
-|  |  |  |  |  |  |f_stmts:
+|  |  |  |  |  |  |stmts:
 |  |  |  |  |  |  |  StmtList[4:7-8:11]
 |  |  |  |  |  |  |  |  DeclBlock[4:7-8:11]
-|  |  |  |  |  |  |  |  |f_decls:
+|  |  |  |  |  |  |  |  |decls:
 |  |  |  |  |  |  |  |  |  DeclarativePart[4:14-6:7]
-|  |  |  |  |  |  |  |  |  |f_decls:
+|  |  |  |  |  |  |  |  |  |decls:
 |  |  |  |  |  |  |  |  |  |  AdaNodeList[5:10-5:47]
 |  |  |  |  |  |  |  |  |  |  |  SubtypeDecl[5:10-5:47]
-|  |  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  |  DefiningName[5:18-5:21]
-|  |  |  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  |  |  Id[5:18-5:21]: Lol
-|  |  |  |  |  |  |  |  |  |  |  |f_subtype:
+|  |  |  |  |  |  |  |  |  |  |  |subtype:
 |  |  |  |  |  |  |  |  |  |  |  |  SubtypeIndication[5:25-5:46]
-|  |  |  |  |  |  |  |  |  |  |  |  |f_has_not_null:
+|  |  |  |  |  |  |  |  |  |  |  |  |has_not_null:
 |  |  |  |  |  |  |  |  |  |  |  |  |  NotNullAbsent[5:24-5:24]
-|  |  |  |  |  |  |  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  |  |  |  |  |  |  Id[5:25-5:32]: Integer
-|  |  |  |  |  |  |  |  |  |  |  |  |f_constraint:
+|  |  |  |  |  |  |  |  |  |  |  |  |constraint:
 |  |  |  |  |  |  |  |  |  |  |  |  |  RangeConstraint[5:33-5:46]
-|  |  |  |  |  |  |  |  |  |  |  |  |  |f_range:
+|  |  |  |  |  |  |  |  |  |  |  |  |  |range:
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  RangeSpec[5:33-5:46]
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |f_range:
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |range:
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  BinOp[5:39-5:46]
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |f_left:
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |left:
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  Int[5:39-5:40]: 0
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |f_op:
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |op:
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  OpDoubleDot[5:41-5:43]
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |f_right:
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |right:
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  Int[5:44-5:46]: 10
-|  |  |  |  |  |  |  |  |  |  |  |f_aspects: <null>
-|  |  |  |  |  |  |  |  |f_stmts:
+|  |  |  |  |  |  |  |  |  |  |  |aspects: <null>
+|  |  |  |  |  |  |  |  |stmts:
 |  |  |  |  |  |  |  |  |  HandledStmts[6:12-8:7]
-|  |  |  |  |  |  |  |  |  |f_stmts:
+|  |  |  |  |  |  |  |  |  |stmts:
 |  |  |  |  |  |  |  |  |  |  StmtList[7:10-7:15]
 |  |  |  |  |  |  |  |  |  |  |  NullStmt[7:10-7:15]
-|  |  |  |  |  |  |  |  |  |f_exceptions:
+|  |  |  |  |  |  |  |  |  |exceptions:
 |  |  |  |  |  |  |  |  |  |  AdaNodeList[7:14-7:14]: <empty list>
-|  |  |  |  |  |  |  |  |f_end_name: <null>
-|  |  |  |  |  |  |f_exceptions:
+|  |  |  |  |  |  |  |  |end_name: <null>
+|  |  |  |  |  |  |exceptions:
 |  |  |  |  |  |  |  AdaNodeList[8:10-8:10]: <empty list>
-|  |  |  |  |  |f_end_name:
+|  |  |  |  |  |end_name:
 |  |  |  |  |  |  EndName[9:8-9:11]
-|  |  |  |  |  |  |f_name:
+|  |  |  |  |  |  |name:
 |  |  |  |  |  |  |  Id[9:8-9:11]: Bar
-|  |  |f_stmts: <null>
-|  |  |f_end_name:
+|  |  |stmts: <null>
+|  |  |end_name:
 |  |  |  EndName[10:5-10:8]
-|  |  |  |f_name:
+|  |  |  |name:
 |  |  |  |  Id[10:5-10:8]: Foo
-|f_pragmas:
+|pragmas:
 |  PragmaNodeList[10:9-10:9]: <empty list>
 
 ==== Dumping lexical environments ====
-@1 = LexEnv(Static_Primary, Parent=$root, Node=<PackageDecl ["Standard"] __standard:1:1-122:14>):
-    'a': [<EnumLiteralDecl ["'A'"] __standard:20:22-20:25>, <EnumLiteralDecl ["'A'"] __standard:21:27-21:30>, <EnumLiteralDecl ["'A'"] __standard:22:32-22:35>]
-    ascii: [<PackageDecl ["ASCII"] __standard:23:3-103:13>]
-    boolean: [<TypeDecl ["Boolean"] __standard:3:3-3:33>]
-    character: [<TypeDecl ["Character"] __standard:20:3-20:27>]
-    constraint_error: [<ExceptionDecl ["Constraint_Error"] __standard:115:3-115:32>]
-    duration: [<TypeDecl ["Duration"] __standard:111:3-113:42>]
-    false: [<EnumLiteralDecl ["False"] __standard:3:20-3:25>]
-    float: [<TypeDecl ["Float"] __standard:13:3-14:51>]
-    integer: [<TypeDecl ["Integer"] __standard:4:3-4:54>]
-    long_float: [<TypeDecl ["Long_Float"] __standard:15:3-16:73>]
-    long_integer: [<TypeDecl ["Long_Integer"] __standard:9:3-9:66>]
-    long_long_float: [<TypeDecl ["Long_Long_Float"] __standard:17:3-19:33>]
-    long_long_integer: [<TypeDecl ["Long_Long_Integer"] __standard:10:3-10:66>]
-    natural: [<SubtypeDecl ["Natural"] __standard:5:3-5:57>]
-    numeric_error: [<ExceptionDecl ["Numeric_Error"] __standard:116:3-116:32>]
-    positive: [<SubtypeDecl ["Positive"] __standard:6:3-6:57>]
-    program_error: [<ExceptionDecl ["Program_Error"] __standard:117:3-117:32>]
-    short_float: [<TypeDecl ["Short_Float"] __standard:11:3-12:51>]
-    short_integer: [<TypeDecl ["Short_Integer"] __standard:8:3-8:66>]
-    short_short_integer: [<TypeDecl ["Short_Short_Integer"] __standard:7:3-7:64>]
-    storage_error: [<ExceptionDecl ["Storage_Error"] __standard:118:3-118:32>]
-    string: [<TypeDecl ["String"] __standard:104:3-104:57>]
-    tasking_error: [<ExceptionDecl ["Tasking_Error"] __standard:119:3-119:32>]
-    true: [<EnumLiteralDecl ["True"] __standard:3:27-3:31>]
-    universal_int_type_: [<TypeDecl ["Universal_Int_Type_"] __standard:120:3-120:45>]
-    universal_real_type_: [<TypeDecl ["Universal_Real_Type_"] __standard:121:3-121:42>]
-    wide_character: [<TypeDecl ["Wide_Character"] __standard:21:3-21:32>]
-    wide_string: [<TypeDecl ["Wide_String"] __standard:106:3-107:39>]
-    wide_wide_character: [<TypeDecl ["Wide_Wide_Character"] __standard:22:3-22:37>]
-    wide_wide_string: [<TypeDecl ["Wide_Wide_String"] __standard:108:3-109:44>]
-
 $root = LexEnv(Static_Primary, Parent=null):
-    standard: [<PackageDecl ["Standard"] __standard:1:1-122:14>]
+    standard: [<PackageDecl ["Standard"] __standard:1:1-121:14>]
 
-@2 = LexEnv(Static_Primary, Parent=@1, Node=<PackageBody ["Foo"] input:1:1-10:9>):
+@2 = LexEnv(Static_Primary, Parent=null, Node=<PackageBody ["Foo"] input:1:1-10:9>):
     bar: [<SubpBody ["Bar"] input:2:4-9:12>]
+
+@1 = LexEnv(Static_Primary, Empty, Parent=null):
+    <empty>
 
 @3 = LexEnv(Static_Primary, Parent=@2, Node=<SubpBody ["Bar"] input:2:4-9:12>):
   Referenced: <SubpBody ["Bar"] input:2:4-9:12>: LexEnv(Static_Primary, Node=<CompilationUnit input:1:1-10:9>)
