@@ -15313,6 +15313,10 @@ class SubpBodyStub(BodyStub):
     # what we put in lexical environment is their SubpSpec child.
 
     env_spec = EnvSpec(
+        add_to_env_kv(
+            key=Self.name_symbol,
+            val=Self
+        ),
         add_to_env_by_name(
             key='__nextpart',
             val=Self,
