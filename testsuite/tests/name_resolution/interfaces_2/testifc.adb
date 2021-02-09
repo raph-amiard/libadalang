@@ -1,18 +1,15 @@
 procedure TestIfc is
    package Pkg is
-      type A is interface;
-      procedure Foo (Self : A; O : Natural) is null;
+      type Root_Interface is interface;
+      procedure Foo (Self : Root_Interface; Nat : Natural) is null;
 
-      type B is interface and A;
-
-      procedure Bar (Self : B) is null;
-
-      type C is new B with null record;
+      type Derived is interface and Root_Interface;
+      procedure Bar (Self : Derived) is null;
    end Pkg;
 
    use Pkg;
 
-   Inst : B'Class := C'(null record);
+   Inst : Derived'Class;
 begin
    Foo (Inst, 12);
    pragma Test_Statement;
