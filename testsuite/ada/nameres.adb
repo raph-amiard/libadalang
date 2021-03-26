@@ -677,7 +677,7 @@ procedure Nameres is
          GNATCOLL.Memory.Configure (Activate_Monitor => True);
       end if;
 
-      Put_Line ("Lookup cache mode: " & Lookup_Cache_Mode'Image);
+      --  Put_Line ("Lookup cache mode: " & Lookup_Cache_Mode'Image);
 
       Set_Lookup_Cache_Mode (Lookup_Cache_Mode);
 
